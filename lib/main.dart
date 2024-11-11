@@ -42,6 +42,11 @@ class MyAppState extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  void removeFavorite(WordPair pair){
+    favorites.remove(pair);
+    notifyListeners();
+  }
 }
 class MyHomePage extends StatefulWidget{
   @override
@@ -59,7 +64,7 @@ class _MyHomePageState extends State<MyHomePage> {
         page = GeneratorPage();
         break;
       case 1:
-        page = PlaceHolderPage();
+        page = FavoritePage();
         break;
       default:
         throw UnimplementedError("no widget for $selectedIndex");
@@ -99,12 +104,13 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 
-class PlaceHolderPage extends StatelessWidget{
+class FavoritePage extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
     var pairs = appState.favorites;
+    var theme = Theme.of(context);
 
     if(pairs.isEmpty){
       return Center(
@@ -112,19 +118,40 @@ class PlaceHolderPage extends StatelessWidget{
       );
     }
 
-    return ListView(
-      children: [
-        Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text("you have ${pairs.length} liked words:")
-        ),
-        for(var pair in pairs)
-          ListTile(
-            leading: Icon(Icons.favorite),
-            title: Text(pair.asCamelCase),
-          )
-      ],
+    return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+                  Padding(
+                  padding: const EdgeInsets.all(30),
+                  child: Text('You have '
+                  '${appState.favorites.length} favorites:'),
+                  ),
+                  Expanded(
+                      // Make better use of wide windows with a grid.
+                      child: GridView(
+                      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                          maxCrossAxisExtent: 400,
+                          childAspectRatio: 400 / 80,
+                          ),
+                        children: [
+                          for (var pair in pairs)
+                            ListTile(
+                              leading: IconButton(
+                                  onPressed: ()=>appState.removeFavorite(pair),
+                                  icon: Icon(Icons.deblur_outlined, semanticLabel: "Delete"),
+                                  color: theme.colorScheme.primary,
+                              ),
+                              title: Text(
+                                pair.asCamelCase,
+                                semanticsLabel: pair.asPascalCase
+                              ),
+                            )
+                        ],
+                      )
+                  )
+          ],
     );
+
   }
 
 
